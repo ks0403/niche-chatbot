@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NicheBot — Fitness, Tech & Cooking</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f11;
+    --surface: #1a1a1f;
+    --surface2: #23232a;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0eff4;
+    --muted: #8b8a99;
+    --accent-fit: #6ee7b7;
+    --accent-tech: #93c5fd;
+    --accent-cook: #fca5a5;
+    --accent-fit-dim: rgba(110,231,183,0.12);
+    --accent-tech-dim: rgba(147,197,253,0.12);
+    --accent-cook-dim: rgba(252,165,165,0.12);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: rgba(15,15,17,0.85);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+  .logo { font-family: 'Sora', sans-serif; font-size: 1.1rem; letter-spacing: -0.02em; }
+  .logo span { color: var(--accent-fit); }
+  .nav-badge { font-size: 11px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 20px; padding: 4px 12px; color: var(--muted); }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 4rem 1.5rem 3rem;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 1.25rem;
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 5px 14px; border-radius: 20px;
+  }
+  .dot-live { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-fit); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  h1 {
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+  }
+  h1 em { font-style: normal; color: var(--accent-fit); }
+  .hero-sub { font-size: 1rem; color: var(--muted); line-height: 1.7; margin-bottom: 2rem; }
+
+  /* TOPIC PICKER */
+  .topic-picker {
+    display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+  .topic-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 40px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 14px; font-family: 'Inter', sans-serif;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .topic-btn:hover { border-color: var(--border2); color: var(--text); background: var(--surface2); }
+  .topic-btn.active[data-topic="fitness"] { background: var(--accent-fit-dim); border-color: var(--accent-fit); color: var(--accent-fit); }
+  .topic-btn.active[data-topic="tech"]    { background: var(--accent-tech-dim); border-color: var(--accent-tech); color: var(--accent-tech); }
+  .topic-btn.active[data-topic="cooking"] { background: var(--accent-cook-dim); border-color: var(--accent-cook); color: var(--accent-cook); }
+  .topic-icon { font-size: 18px; }
+
+  /* CHATBOX */
+  .chat-wrapper {
+    max-width: 680px;
+    margin: 0 auto 4rem;
+    width: 100%;
+    padding: 0 1rem;
+  }
+  .chat-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .chat-topbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .bot-avatar {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    transition: background 0.3s;
+  }
+  .bot-avatar.fitness { background: var(--accent-fit-dim); }
+  .bot-avatar.tech    { background: var(--accent-tech-dim); }
+  .bot-avatar.cooking { background: var(--accent-cook-dim); }
+  .bot-name { font-size: 14px; font-weight: 500; }
+  .bot-status { font-size: 12px; color: var(--muted); }
+  .status-dot { display: inline-block; width: 6px; height: 6px; background: var(--accent-fit); border-radius: 50%; margin-right: 5px; animation: pulse 2s infinite; }
+
+  .messages {
+    height: 360px;
+    overflow-y: auto;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scroll-behavior: smooth;
+  }
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  .msg { display: flex; flex-direction: column; max-width: 82%; }
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.bot  { align-self: flex-start; }
+  .msg-sender { font-size: 11px; color: var(--muted); margin-bottom: 4px; padding: 0 4px; }
+  .msg-bubble {
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .msg.user .msg-bubble {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-bottom-right-radius: 4px;
+    color: var(--text);
+  }
+  .msg.bot .msg-bubble {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+    color: var(--text);
+  }
+  .typing-indicator { display: flex; gap: 5px; padding: 14px 18px; }
+  .typing-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: bounce 1.2s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+  /* SUGGESTIONS */
+  .suggestions {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .suggestion-chip {
+    font-size: 12px; padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border2);
+    background: var(--bg);
+    color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .suggestion-chip:hover { color: var(--text); border-color: var(--border2); background: var(--surface); }
+
+  /* INPUT */
+  .chat-input-row {
+    display: flex; gap: 10px; align-items: flex-end;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+  .chat-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    resize: none; min-height: 40px; max-height: 100px;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .chat-input:focus { border-color: var(--border2); }
+  .chat-input::placeholder { color: var(--muted); }
+  .send-btn {
+    width: 40px; height: 40px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .send-btn:hover { background: var(--surface); }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* API KEY NOTICE */
+  .api-notice {
+    background: rgba(252,165,165,0.08);
+    border: 1px solid rgba(252,165,165,0.25);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--accent-cook);
+    margin: 0 1rem 1rem;
+    line-height: 1.6;
+  }
+  .api-notice a { color: var(--accent-cook); }
+  .api-key-row {
+    display: flex; gap: 8px; align-items: center;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .api-key-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 7px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+  }
+  .api-key-input::placeholder { color: var(--muted); }
+  .api-key-btn {
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .api-key-btn:hover { background: var(--bg); }
+
+  /* FOOTER */
+  footer {
+    margin-top: auto;
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+  footer a { color: var(--muted); text-decoration: underline; }
+
+  /* HOW IT WORKS */
+  .how-section {
+    max-width: 680px;
+    margin: 0 auto 3rem;
+    padding: 0 1rem;
+  }
+  .how-title { font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 1rem; }
+  .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .how-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+  }
+  .how-num { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; color: var(--border2); margin-bottom: 6px; }
+  .how-card h3 { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .how-card p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  @media(max-width: 500px) {
+    .how-grid { grid-template-columns: 1fr; }
+    nav { padding: 1rem; }
+    h1 { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Niche<span>Bot</span></div>
+  <div class="nav-badge">Fitness · Tech · Cooking</div>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">
+    <span class="dot-live"></span>
+    AI-Powered Niche Chatbots
+  </div>
+  <h1>Talk to an <em>expert</em><br>made just for you</h1>
+  <p class="hero-sub">Pick your interest. Ask anything. Get answers tailored to your exact niche — not generic advice for everyone.</p>
+
+  <div class="topic-picker">
+    <button class="topic-btn active" data-topic="fitness" onclick="setTopic('fitness')">
+      <span class="topic-icon">🏋️</span> Fitness
+    </button>
+    <button class="topic-btn" data-topic="tech" onclick="setTopic('tech')">
+      <span class="topic-icon">💻</span> Technology
+    </button>
+    <button class="topic-btn" data-topic="cooking" onclick="setTopic('cooking')">
+      <span class="topic-icon">🍳</span> Cooking
+    </button>
+  </div>
+</section>
+
+<div class="chat-wrapper">
+
+  <div class="api-notice" id="apiNotice">
+    ⚠️ This chatbot uses the <strong>Anthropic Claude API</strong>. Enter your API key below to activate it.
+    Get one free at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Your key is stored only in your browser.
+  </div>
+
+  <div class="chat-card">
+    <div class="chat-topbar">
+      <div class="bot-avatar fitness" id="botAvatar">🏋️</div>
+      <div>
+        <div class="bot-name" id="botName">FitBot — Home Workouts for Busy People</div>
+        <div class="bot-status"><span class="status-dot"></span>Online</div>
+      </div>
+    </div>
+
+    <div class="api-key-row">
+      <input class="api-key-input" id="apiKeyInput" type="password" placeholder="sk-ant-... (your Anthropic API key)" />
+      <button class="api-key-btn" onclick="saveKey()">Save</button>
+    </div>
+
+    <div class="messages" id="messages"></div>
+
+    <div class="suggestions" id="suggestions"></div>
+
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chatInput" placeholder="Ask your question..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"
+        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+</div>
+
+<div class="how-section">
+  <div class="how-title">How to use this</div>
+  <div class="how-grid">
+    <div class="how-card">
+      <div class="how-num">1</div>
+      <h3>Get an API key</h3>
+      <p>Sign up free at console.anthropic.com and copy your secret key.</p>
+    </div>
+    <div class="how-card">
+      <div class="how-num">2</div>
+      <h3>Pick your niche</h3>
+      <p>Choose Fitness, Tech, or Cooking. Each bot has a different personality and knowledge focus.</p>
+    </div>
+    <div class="how-card">
+      <div class="how-num">3</div>
+      <h3>Ask away</h3>
+      <p>Type any question. The bot gives focused, niche-specific answers — not generic ones.</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Built with the <a href="https://docs.anthropic.com" target="_blank">Anthropic Claude API</a> ·
+  Open the HTML file locally or host it on <a href="https://netlify.com" target="_blank">Netlify</a> / <a href="https://pages.github.com" target="_blank">GitHub Pages</a> for free
+</footer>
+
+<script>
+const TOPICS = {
+  fitness: {
+    name: "FitBot — Home Workouts for Busy People",
+    icon: "🏋️",
+    cls: "fitness",
+    system: `You are FitBot, a friendly fitness coach specializing in home workouts for busy people with no equipment.
+Keep answers short, practical, and motivating. Focus on: quick workouts (10–30 min), bodyweight exercises,
+beginner-friendly tips, and injury prevention. Always adapt to the user's constraints (time, space, fitness level).
+Use simple language. Avoid jargon. If asked about gym equipment or complex routines, redirect to home-friendly alternatives.`,
+    suggestions: ["20-min full body workout", "I only have 10 minutes", "How do I lose belly fat at home?", "Beginner workout plan"],
+    welcome: "Hey! 👋 I'm FitBot. Tell me how much time you have and I'll give you a quick, effective home workout. No equipment needed!"
+  },
+  tech: {
+    name: "TechBot — Simple Tech for Everyone",
+    icon: "💻",
+    cls: "tech",
+    system: `You are TechBot, a patient and friendly tech helper for people who are not very technical.
+Explain everything in simple, easy language — no jargon. Focus on: smartphones, apps, internet safety,
+free tools for everyday use, and solving common tech problems. Your audience may be seniors, students,
+or first-time smartphone users. Always give step-by-step instructions when needed. Be encouraging and never make the user feel dumb.`,
+    suggestions: ["How do I stop spam calls?", "What is UPI and how does it work?", "Best free apps for students", "How to stay safe online"],
+    welcome: "Hi there! 👋 I'm TechBot. I explain tech in plain, simple language. What's confusing you today?"
+  },
+  cooking: {
+    name: "CookBot — Quick Indian Recipes on a Budget",
+    icon: "🍳",
+    cls: "cooking",
+    system: `You are CookBot, a friendly Indian home cooking assistant specializing in quick, affordable recipes.
+Focus on: recipes under ₹100, single-burner cooking (for hostel/PG students), traditional Indian dishes,
+healthy meal ideas, and simple techniques for beginners. Always mention cooking time and approximate cost.
+Keep recipes short and easy. Use ingredients easily available in Indian grocery stores (kirana shops).`,
+    suggestions: ["Easy dal tadka recipe", "What can I make in 10 minutes?", "Budget meal for ₹50", "Healthy breakfast ideas"],
+    welcome: "Namaste! 🙏 I'm CookBot. Tell me what's in your kitchen and I'll suggest a quick, tasty recipe you can make right now!"
+  }
+};
+
+let currentTopic = 'fitness';
+let apiKey = localStorage.getItem('nichebot_api_key') || '';
+let isLoading = false;
+let conversationHistory = [];
+
+if (apiKey) {
+  document.getElementById('apiKeyInput').value = apiKey;
+  document.getElementById('apiNotice').style.display = 'none';
+}
+
+function saveKey() {
+  apiKey = document.getElementById('apiKeyInput').value.trim();
+  localStorage.setItem('nichebot_api_key', apiKey);
+  document.getElementById('apiNotice').style.display = 'none';
+  if (!document.querySelector('#messages .msg')) loadWelcome();
+}
+
+function setTopic(topic) {
+  currentTopic = topic;
+  conversationHistory = [];
+  document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-topic="${topic}"]`).classList.add('active');
+  const t = TOPICS[topic];
+  document.getElementById('botName').textContent = t.name;
+  document.getElementById('botAvatar').textContent = t.icon;
+  document.getElementById('botAvatar').className = 'bot-avatar ' + t.cls;
+  document.getElementById('messages').innerHTML = '';
+  loadSuggestions(topic);
+  loadWelcome();
+}
+
+function loadWelcome() {
+  const t = TOPICS[currentTopic];
+  addMessage('bot', t.welcome);
+}
+
+function loadSuggestions(topic) {
+  const t = TOPICS[topic];
+  const el = document.getElementById('suggestions');
+  el.innerHTML = t.suggestions.map(s =>
+    `<button class="suggestion-chip" onclick="useSuggestion('${s}')">${s}</button>`
+  ).join('');
+}
+
+function useSuggestion(text) {
+  document.getElementById('chatInput').value = text;
+  sendMessage();
+}
+
+function addMessage(role, text) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = `
+    <div class="msg-sender">${role === 'user' ? 'You' : TOPICS[currentTopic].name.split(' — ')[0]}</div>
+    <div class="msg-bubble">${text.replace(/\n/g, '<br>')}</div>
+  `;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg bot'; div.id = 'typing';
+  div.innerHTML = `<div class="msg-bubble typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+async function sendMessage() {
+  if (isLoading) return;
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  if (!apiKey) {
+    alert('Please enter your Anthropic API key first.');
+    return;
+  }
+
+  input.value = '';
+  input.style.height = 'auto';
+  addMessage('user', text);
+  conversationHistory.push({ role: 'user', content: text });
+
+  isLoading = true;
+  document.getElementById('sendBtn').disabled = true;
+  showTyping();
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 600,
+        system: TOPICS[currentTopic].system,
+        messages: conversationHistory
+      })
+    });
+
+    const data = await response.json();
+    removeTyping();
+
+    if (data.error) {
+      addMessage('bot', '❌ Error: ' + data.error.message + '\n\nCheck your API key and try again.');
+    } else {
+      const reply = data.content[0].text;
+      conversationHistory.push({ role: 'assistant', content: reply });
+      addMessage('bot', reply);
+    }
+  } catch (err) {
+    removeTyping();
+    addMessage('bot', '❌ Could not connect. Check your internet connection and API key.');
+  }
+
+  isLoading = false;
+  document.getElementById('sendBtn').disabled = false;
+}
+
+setTopic('fitness');
+</script>
+</body>
+</html>
